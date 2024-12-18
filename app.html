@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>喝水提醒 App</title>
+    <style>
+        /* 設置整體頁面的樣式 */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 350px;
+        }
+
+        h1 {
+            color: #4caf50;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .countdown {
+            font-size: 20px;
+            color: #ff5722;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>喝水提醒</h1>
+        <div class="message" id="message">每小時提醒你喝水</div>
+        <div class="countdown" id="countdown">剩餘時間: 60 分鐘</div>
+        <button id="startButton" onclick="startReminder()">開始提醒</button>
+        <button id="stopButton" onclick="stopReminder()" disabled>停止提醒</button>
+    </div>
+
+    <script>
+        let reminderInterval;
+        let countdownTime = 60;  // 預設倒計時為60分鐘
+        let countdownDisplay = document.getElementById('countdown');
+        let messageDisplay = document.getElementById('message');
+        let startButton = document.getElementById('startButton');
+        let stopButton = document.getElementById('stopButton');
+
+        // 開始定時提醒
+        function startReminder() {
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            messageDisplay.innerHTML = "已啟動每小時喝水提醒！";
+            startCountdown();
+            reminderInterval = setInterval(function() {
+                alert("該喝水了！");
+                countdownTime = 60;  // 重設倒計時為60分鐘
+                startCountdown();  // 重新啟動倒計時顯示
+            }, 3600000);  // 每1小時提醒一次
+        }
+
+        // 停止定時提醒
+        function stopReminder() {
+            clearInterval(reminderInterval);
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            messageDisplay.innerHTML = "提醒已停止";
+            countdownDisplay.innerHTML = "剩餘時間: -- 分鐘";
+        }
+
+        // 倒計時顯示更新
+        function startCountdown() {
+            // 更新倒計時顯示
+            let countdownInterval = setInterval(function() {
+                countdownTime--;
+                countdownDisplay.innerHTML = "剩餘時間: " + countdownTime + " 分鐘";
+                
+                // 當倒計時結束，停止倒計時並觸發提醒
+                if (countdownTime <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 60000);  // 每分鐘更新一次倒計時
+        }
+    </script>
+</body>
+</html>
