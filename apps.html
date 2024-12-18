@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爬來爬去的猴子</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB; /* 天空藍背景 */
+        }
+        #gameCanvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #f0f0f0;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        /* 樹的樣式 */
+        .tree {
+            position: absolute;
+            left: 200px;
+            bottom: 50px;
+            width: 50px;
+            height: 200px;
+            background-color: #8B4513; /* 樹幹顏色 */
+            border-radius: 10px;
+        }
+        .tree-top {
+            position: absolute;
+            top: -70px;
+            left: -50px;
+            width: 150px;
+            height: 150px;
+            background-color: #228B22; /* 樹頂綠色 */
+            border-radius: 50%;
+        }
+
+        /* 猴子的樣式 */
+        .monkey {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #F4A300; /* 猴子顏色 */
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .monkey .face {
+            width: 35px;
+            height: 35px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .monkey .eyes {
+            width: 5px;
+            height: 5px;
+            background-color: black;
+            border-radius: 50%;
+            margin: 2px;
+        }
+        .monkey .mouth {
+            width: 15px;
+            height: 5px;
+            background-color: #F1C27D; /* 嘴巴顏色 */
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        /* 香蕉的樣式 */
+        .banana {
+            position: absolute;
+            width: 30px;
+            height: 60px;
+            background-color: #FFEB3B; /* 香蕉顏色 */
+            border-radius: 15px;
+            transform: rotate(30deg);
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            color: black;
+            font-family: Arial, sans-serif;
+        }
+
+        #gameOverMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: red;
+            font-family: Arial, sans-serif;
+            display: none; /* 預設隱藏 */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="score">分數: 0</div>
+    <div id="gameOverMessage">遊戲結束</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const treeX = 200;
+        const treeY = 50;
+        const treeWidth = 50;
+        const treeHeight = 400;
+        
+        const bananaWidth = 30;
+        const bananaHeight = 60;
+
+        let monkey = {
+            x: treeX + 10,
+            y: canvas.height - 100,
+            width: 50,
+            height: 50,
+            velocityY: 0,
+            gravity: 0.5,
+            jumpStrength: -10,
+            onGround: true,
+        };
+
+        let banana = {
+            x: treeX + 10,
+            y: treeY,
+            width: bananaWidth,
+            height: bananaHeight,
+            visible: false
+        };
+
+        let score = 0;
+        let gameOver = false;
+
+        // 繪製猴子
+        function drawMonkey() {
+            // 猴子的外圓
+            ctx.beginPath();
+            ctx.arc(monkey.x + 25, monkey.y + 25, 25, 0, Math.PI * 2);
+            ctx.fillStyle = "#F4A300";
+            ctx.fill();
+            ctx.stroke();
+
+            // 猴子的臉
+            ctx.beginPath();
+            ctx.arc(monkey.x + 25, monkey.y + 25, 18, 0, Math.PI * 2);
+            ctx.fillStyle = "#fff";
+            ctx.fill();
+            ctx.stroke();
+
+            // 猴子的眼睛
+            ctx.beginPath();
+            ctx.arc(monkey.x + 18, monkey.y + 20, 4, 0, Math.PI * 2);
+            ctx.arc(monkey.x + 32, monkey.y + 20, 4, 0, Math.PI * 2);
+            ctx.fillStyle = "black";
+            ctx.fill();
+
+            // 猴子的嘴巴
+            ctx.beginPath();
+            ctx.arc(monkey.x + 25, monkey.y + 35, 10, 0, Math.PI);
+            ctx.fillStyle = "#F1C27D";
+            ctx.fill();
+        }
+
+        // 繪製樹
+        function drawTree() {
+            ctx.fillStyle = "#8B4513"; // 樹幹顏色
+            ctx.fillRect(treeX, treeY, treeWidth, treeHeight);
+
+            // 樹頂
+            ctx.fillStyle = "#228B22"; // 樹葉顏色
+            ctx.beginPath();
+            ctx.arc(treeX + treeWidth / 2, treeY - 70, 75, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 繪製香蕉
+        function drawBanana() {
+            if (banana.visible) {
+                ctx.fillStyle = "#FFEB3B"; // 香蕉顏色
+                ctx.save();
+                ctx.translate(banana.x + bananaWidth / 2, banana.y + bananaHeight / 2);
+                ctx.rotate(30 * Math.PI / 180); // 旋轉香蕉
+                ctx.fillRect(-bananaWidth / 2, -bananaHeight / 2, bananaWidth, bananaHeight);
+                ctx.restore();
+            }
+        }
+
+        // 更新猴子位置
+        function updateMonkey() {
+            // 更新猴子的垂直位置
+            monkey.y += monkey.velocityY;
+
+            // 加入重力效果
+            if (!monkey.onGround) {
+                monkey.velocityY += monkey.gravity; // 模擬重力
+            }
+
+            // 避免猴子越過樹頂
+            if (monkey.y <= treeY) {
+                monkey.y = treeY;
+                monkey.velocityY = 0;
+                monkey.onGround = true;
+                banana.visible = true; // 顯示香蕉
+            }
+
+            // 假設地面高度為畫布底部
+            if (monkey.y >= canvas.height - monkey.height) {
+                monkey.y = canvas.height - monkey.height;
+                monkey.velocityY = 0;
+                monkey.onGround = true;
+            }
+
+            // 檢查是否到達終點並結束遊戲
+            if (monkey.y <= treeY && !gameOver) {
+                score += 10; // 增加10分
+                document.getElementById('score').textContent = '分數: ' + score;
+                gameOver = true; // 遊戲結束
+                document.getElementById('gameOverMessage').style.display = 'block'; // 顯示遊戲結束訊息
+            }
+        }
+
+        // 吃掉香蕉
+        function checkBananaCollision() {
+            if (banana.visible &&
+                monkey.x + monkey.width > banana.x &&
+                monkey.x < banana.x + banana.width &&
+                monkey.y < banana.y + banana.height &&
+                monkey.y + monkey.height > banana.y) {
+                banana.visible = false; // 隱藏香蕉
+                score++; // 增加分數
+                document.getElementById('score').textContent = '分數: ' + score;
+            }
+        }
+
+        // 按空白鍵讓猴子向上爬
+        function jump() {
+            if (monkey.onGround) {
+                monkey.velocityY = monkey.jumpStrength;
+                monkey.onGround = false;
+            }
+        }
+
+        // 監聽鍵盤事件
+        let keys = {
+            up: false,
+            down: false,
+            space: false
+        };
+
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                keys.space = true;
+            }
+            if (event.code === 'ArrowUp') {
+                keys.up = true;
+            }
+            if (event.code === 'ArrowDown') {
+                keys.down = true;
+            }
+        });
+
+        document.addEventListener('keyup', function(event) {
+            if (event.code === 'Space') {
+                keys.space = false;
+            }
+            if (event.code === 'ArrowUp') {
+                keys.up = false;
+            }
+            if (event.code === 'ArrowDown') {
+                keys.down = false;
+            }
+        });
+
+        // 更新猴子的移動
+        function updateMovement() {
+            if (keys.space || keys.up) {
+                monkey.velocityY = -3; // 向上移動
+                monkey.onGround = false;
+            } else if (keys.down) {
+                monkey.velocityY = 3; // 向下移動
+                monkey.onGround = false;
+            }
+        }
+
+        // 遊戲循環
+        function gameLoop() {
+            if (gameOver) return; // 如果遊戲結束，停止循環
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // 清空畫布
+
+            updateMovement(); // 更新猴子移動
+            updateMonkey(); // 更新猴子的垂直位置
+            drawTree();
+            drawMonkey();
+            drawBanana();
+            checkBananaCollision();
+
+            requestAnimationFrame(gameLoop); // 不斷循環
+        }
+
+        // 啟動遊戲
+        gameLoop(); // 啟動遊戲循環
+    </script>
+</body>
+</html>
