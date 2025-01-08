@@ -1,0 +1,162 @@
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/firestore';
+
+// Firebase 設定
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+} else {
+  firebase.app();
+}
+
+// 主頁
+const HomePage = () => (
+  <div>
+    <h2>歡迎來到瘦身達人</h2>
+    <Link to="/diet">飲食計劃</Link>
+    <br />
+    <Link to="/exercise">運動計劃</Link>
+    <br />
+    <Link to="/progress">查看進度</Link>
+  </div>
+);
+
+// 飲食計劃頁面
+const DietPlan = () => (
+  <div>
+    <h2>減肥飲食計劃</h2>
+    <p>早餐：全麥吐司，雞胸肉，蛋白質奶昔</p>
+    <p>午餐：綠色蔬菜沙拉，雞胸肉</p>
+    <p>晚餐：清蒸魚，蔬菜</p>
+  </div>
+);
+
+// 運動計劃頁面
+const ExercisePlan = () => (
+  <div>
+    <h2>運動計劃</h2>
+    <p>HIIT運動</p>
+    <p>每週三次跑步</p>
+  </div>
+);
+
+// 進度追蹤頁面
+const ProgressTracking = () => (
+  <div>
+    <h2>減肥進度</h2>
+    <p>目前體重：70kg</p>
+    <p>目標體重：60kg</p>
+  </div>
+);
+
+// 登錄頁面
+const LoginPage = ({ history }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleLogin = () => {
+    firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(() => {
+        history.push('/');
+      })
+      .catch((error) => {
+        setErrorMessage(error.message);
+      });
+  };
+
+  return (
+    <div>
+      <h2>登錄</h2>
+      <input
+        type="email"
+        placeholder="輸入電子郵件"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <br />
+      <input
+        type="password"
+        placeholder="輸入密碼"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <br />
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      <button onClick={handleLogin}>登錄</button>
+    </div>
+  );
+};
+
+// 註冊頁面
+const RegisterPage = ({ history }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleRegister = () => {
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(() => {
+        history.push('/login');
+      })
+      .catch((error) => {
+        setErrorMessage(error.message);
+      });
+  };
+
+  return (
+    <div>
+      <h2>註冊</h2>
+      <input
+        type="email"
+        placeholder="輸入電子郵件"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <br />
+      <input
+        type="password"
+        placeholder="輸入密碼"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <br />
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      <button onClick={handleRegister}>註冊</button>
+    </div>
+  );
+};
+
+// 完整的 App 組件
+const App = () => {
+  return (
+    <Router>
+      <div>
+        <nav>
+          <Link to="/">首頁</Link> | <Link to="/login">登錄</Link> | <Link to="/register">註冊</Link>
+        </nav>
+        <Switch>
+          <Route path="/" exact component={HomePage} />
+          <Route path="/diet" component={DietPlan} />
+          <Route path="/exercise" component={ExercisePlan} />
+          <Route path="/progress" component={ProgressTracking} />
+          <Route path="/login" component={LoginPage} />
+          <Route path="/register" component={RegisterPage} />
+        </Switch>
+      </div>
+    </Router>
+  );
+};
+
+export default App;
