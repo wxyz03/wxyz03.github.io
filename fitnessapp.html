@@ -1,162 +1,158 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
-import firebase from 'firebase/app';
-import 'firebase/auth';
-import 'firebase/firestore';
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>體重追蹤應用</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
 
-// Firebase 設定
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+        h1 {
+            text-align: center;
+        }
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-} else {
-  firebase.app();
-}
+        .form-container, .data-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
 
-// 主頁
-const HomePage = () => (
-  <div>
-    <h2>歡迎來到瘦身達人</h2>
-    <Link to="/diet">飲食計劃</Link>
-    <br />
-    <Link to="/exercise">運動計劃</Link>
-    <br />
-    <Link to="/progress">查看進度</Link>
-  </div>
-);
+        input[type="number"], input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
 
-// 飲食計劃頁面
-const DietPlan = () => (
-  <div>
-    <h2>減肥飲食計劃</h2>
-    <p>早餐：全麥吐司，雞胸肉，蛋白質奶昔</p>
-    <p>午餐：綠色蔬菜沙拉，雞胸肉</p>
-    <p>晚餐：清蒸魚，蔬菜</p>
-  </div>
-);
+        button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-// 運動計劃頁面
-const ExercisePlan = () => (
-  <div>
-    <h2>運動計劃</h2>
-    <p>HIIT運動</p>
-    <p>每週三次跑步</p>
-  </div>
-);
+        button:hover {
+            background-color: #45a049;
+        }
 
-// 進度追蹤頁面
-const ProgressTracking = () => (
-  <div>
-    <h2>減肥進度</h2>
-    <p>目前體重：70kg</p>
-    <p>目標體重：60kg</p>
-  </div>
-);
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            height: 30px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
 
-// 登錄頁面
-const LoginPage = ({ history }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+        .progress-bar {
+            background-color: #4caf50;
+            height: 100%;
+            border-radius: 10px;
+        }
 
-  const handleLogin = () => {
-    firebase.auth().signInWithEmailAndPassword(email, password)
-      .then(() => {
-        history.push('/');
-      })
-      .catch((error) => {
-        setErrorMessage(error.message);
-      });
-  };
+        .weight-list {
+            margin-top: 20px;
+            list-style-type: none;
+            padding-left: 0;
+        }
 
-  return (
-    <div>
-      <h2>登錄</h2>
-      <input
-        type="email"
-        placeholder="輸入電子郵件"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <br />
-      <input
-        type="password"
-        placeholder="輸入密碼"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <br />
-      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-      <button onClick={handleLogin}>登錄</button>
+        .weight-list li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>體重追蹤應用</h1>
+
+    <div class="form-container">
+        <h2>記錄你的體重</h2>
+        <form id="weightForm">
+            <input type="number" id="weight" placeholder="輸入體重 (kg)" required>
+            <input type="date" id="date" required>
+            <button type="submit">保存體重</button>
+        </form>
     </div>
-  );
-};
 
-// 註冊頁面
-const RegisterPage = ({ history }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleRegister = () => {
-    firebase.auth().createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        history.push('/login');
-      })
-      .catch((error) => {
-        setErrorMessage(error.message);
-      });
-  };
-
-  return (
-    <div>
-      <h2>註冊</h2>
-      <input
-        type="email"
-        placeholder="輸入電子郵件"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <br />
-      <input
-        type="password"
-        placeholder="輸入密碼"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <br />
-      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-      <button onClick={handleRegister}>註冊</button>
+    <div class="data-container">
+        <h2>體重記錄</h2>
+        <ul id="weightList" class="weight-list"></ul>
+        <h3>減重進度</h3>
+        <div class="progress-bar-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <p id="progressText">0% 目標達成</p>
     </div>
-  );
-};
 
-// 完整的 App 組件
-const App = () => {
-  return (
-    <Router>
-      <div>
-        <nav>
-          <Link to="/">首頁</Link> | <Link to="/login">登錄</Link> | <Link to="/register">註冊</Link>
-        </nav>
-        <Switch>
-          <Route path="/" exact component={HomePage} />
-          <Route path="/diet" component={DietPlan} />
-          <Route path="/exercise" component={ExercisePlan} />
-          <Route path="/progress" component={ProgressTracking} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/register" component={RegisterPage} />
-        </Switch>
-      </div>
-    </Router>
-  );
-};
+    <script>
+        // 假設的初始體重目標
+        const initialWeight = 80;
 
-export default App;
+        // 當頁面加載時載入體重數據
+        window.onload = function() {
+            loadWeightData();
+            calculateProgress();
+        };
+
+        // 加載體重數據
+        function loadWeightData() {
+            const weightData = JSON.parse(localStorage.getItem('weightData')) || [];
+            const weightList = document.getElementById('weightList');
+            weightList.innerHTML = '';
+
+            weightData.forEach(data => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${data.date}: ${data.weight} kg`;
+                weightList.appendChild(listItem);
+            });
+        }
+
+        // 計算減重進度
+        function calculateProgress() {
+            const weightData = JSON.parse(localStorage.getItem('weightData')) || [];
+            const latestWeight = weightData.length ? weightData[weightData.length - 1].weight : initialWeight;
+            const progress = ((initialWeight - latestWeight) / initialWeight) * 100;
+
+            // 更新進度條
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${progress}%`;
+
+            // 更新顯示的進度
+            const progressText = document.getElementById('progressText');
+            progressText.textContent = `${progress.toFixed(2)}% 目標達成`;
+        }
+
+        // 記錄體重數據
+        document.getElementById('weightForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const weight = parseFloat(document.getElementById('weight').value);
+            const date = document.getElementById('date').value;
+
+            if (weight && date) {
+                // 儲存新的體重數據
+                const newWeightData = { weight, date };
+                const weightData = JSON.parse(localStorage.getItem('weightData')) || [];
+                weightData.push(newWeightData);
+                localStorage.setItem('weightData', JSON.stringify(weightData));
+
+                // 重置表單並更新顯示
+                document.getElementById('weight').value = '';
+                document.getElementById('date').value = '';
+                loadWeightData();
+                calculateProgress();
+            }
+        });
+    </script>
+
+</body>
+</html>
