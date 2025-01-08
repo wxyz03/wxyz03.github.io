@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>體重追蹤應用</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .form-container, .data-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="number"], input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            height: 30px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            background-color: #4caf50;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .weight-list {
+            margin-top: 20px;
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .weight-list li {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>體重追蹤應用</h1>
+
+    <div class="form-container">
+        <h2>記錄你的體重</h2>
+        <form id="weightForm">
+            <input type="number" id="weight" placeholder="輸入體重 (kg)" required>
+            <input type="date" id="date" required>
+            <button type="submit">保存體重</button>
+        </form>
+    </div>
+
+    <div class="data-container">
+        <h2>體重記錄</h2>
+        <ul id="weightList" class="weight-list"></ul>
+        <h3>減重進度</h3>
+        <div class="progress-bar-container">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+        <p id="progressText">0% 目標達成</p>
+    </div>
+
+    <script>
+        // 假設的初始體重目標
+        const initialWeight = 80;
+
+        // 當頁面加載時載入體重數據
+        window.onload = function() {
+            loadWeightData();
+            calculateProgress();
+        };
+
+        // 加載體重數據
+        function loadWeightData() {
+            const weightData = JSON.parse(localStorage.getItem('weightData')) || [];
+            const weightList = document.getElementById('weightList');
+            weightList.innerHTML = '';
+
+            weightData.forEach(data => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${data.date}: ${data.weight} kg`;
+                weightList.appendChild(listItem);
+            });
+        }
+
+        // 計算減重進度
+        function calculateProgress() {
+            const weightData = JSON.parse(localStorage.getItem('weightData')) || [];
+            const latestWeight = weightData.length ? weightData[weightData.length - 1].weight : initialWeight;
+            const progress = ((initialWeight - latestWeight) / initialWeight) * 100;
+
+            // 更新進度條
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = `${progress}%`;
+
+            // 更新顯示的進度
+            const progressText = document.getElementById('progressText');
+            progressText.textContent = `${progress.toFixed(2)}% 目標達成`;
+        }
+
+        // 記錄體重數據
+        document.getElementById('weightForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const weight = parseFloat(document.getElementById('weight').value);
+            const date = document.getElementById('date').value;
+
+            if (weight && date) {
+                // 儲存新的體重數據
+                const newWeightData = { weight, date };
+                const weightData = JSON.parse(localStorage.getItem('weightData')) || [];
+                weightData.push(newWeightData);
+                localStorage.setItem('weightData', JSON.stringify(weightData));
+
+                // 重置表單並更新顯示
+                document.getElementById('weight').value = '';
+                document.getElementById('date').value = '';
+                loadWeightData();
+                calculateProgress();
+            }
+        });
+    </script>
+
+</body>
+</html>
